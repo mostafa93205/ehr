@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  patient   Patient?
+}
+
+model Patient {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  dateOfBirth  DateTime
+  gender       String
+  bloodType    String?
+  allergies    String?
+  medications  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  appointments Appointment[]
+  files        File[]
+}
+
+model Appointment {
+  id        Int      @id @default(autoincrement())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  doctorId  Int
+  doctor    Doctor   @relation(fields: [doctorId], references: [id])
+  date      DateTime
+  reason    String
+  status    AppointmentStatus @default(SCHEDULED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Doctor {
+  id           Int      @id @default(autoincrement())
+  name         String
+  speciality   String
+  appointments Appointment[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model File {
+  id        String   @id @default(uuid())
+  filename  String
+  path      String
+  mimetype  String
+  size      Int
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  uploadedAt DateTime @default(now())
+}
+
